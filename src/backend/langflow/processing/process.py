@@ -11,6 +11,7 @@ from langflow.graph import Graph
 from langchain.chains.base import Chain
 from langchain.vectorstores.base import VectorStore
 from typing import Any, Dict, List, Optional, Tuple, Union
+from langchain.callbacks import get_openai_callback
 
 
 def fix_memory_inputs(langchain_object):
@@ -59,24 +60,26 @@ def format_actions(actions: List[Tuple[AgentAction, str]]) -> str:
 
 def get_result_and_thought(langchain_object: Any, inputs: dict):
     """Get result and thought from extracted json"""
-    try:
-        if hasattr(langchain_object, "verbose"):
-            langchain_object.verbose = True
-
-        if hasattr(langchain_object, "return_intermediate_steps"):
-            langchain_object.return_intermediate_steps = True
-
-        fix_memory_inputs(langchain_object)
-
+    with get_openai_callback() as cb:
         try:
-            output = langchain_object(inputs, return_only_outputs=True)
-        except ValueError as exc:
-            # make the error message more informative
-            logger.debug(f"Error: {str(exc)}")
-            output = langchain_object.run(inputs)
+            if hasattr(langchain_object, "verbose"):
+                langchain_object.verbose = True
 
-    except Exception as exc:
-        raise ValueError(f"Error: {str(exc)}") from exc
+            if hasattr(langchain_object, "return_intermediate_steps"):
+                langchain_object.return_intermediate_steps = True
+
+            fix_memory_inputs(langchain_object)
+
+            try:
+                output = langchain_object(inputs, return_only_outputs=True)
+            except ValueError as exc:
+                # make the error message more informative
+                logger.debug(f"Error: {str(exc)}")
+                output = langchain_object.run(inputs)
+
+        except Exception as exc:
+            raise ValueError(f"Error: {str(exc)}") from exc
+    output["total_tokens"] = cb.total_tokens
     return output
 
 
