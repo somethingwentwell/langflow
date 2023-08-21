@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import AdminPage from "./pages/AdminPage";
 import LoginAdminPage from "./pages/AdminPage/LoginPage";
 import CommunityPage from "./pages/CommunityPage";
+import InsourcePage from "./pages/InsourcePage";
 import FlowPage from "./pages/FlowPage";
 import HomePage from "./pages/MainPage";
 import DeleteAccountPage from "./pages/deleteAccountPage";
@@ -12,6 +13,7 @@ const Router = () => {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/community" element={<CommunityPage />} />
+      <Route path="/insource" element={<InsourcePage />} />
       <Route path="/flow/:id/">
         <Route path="" element={<FlowPage />} />
       </Route>
