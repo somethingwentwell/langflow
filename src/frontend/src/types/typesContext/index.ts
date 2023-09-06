@@ -16,6 +16,8 @@ export type typesContextType = {
   setTemplates: (newState: {}) => void;
   data: APIDataType;
   setData: (newState: {}) => void;
+  fetchError: boolean;
+  setFetchError: (newState: boolean) => void;
 };
 
 export type alertContextType = {
@@ -37,11 +39,17 @@ export type alertContextType = {
   pushNotificationList: (Object: AlertItemType) => void;
   clearNotificationList: () => void;
   removeFromNotificationList: (index: string) => void;
+  loading: boolean;
+  setLoading: (newState: boolean) => void;
 };
 
 export type darkContextType = {
   dark: {};
   setDark: (newState: {}) => void;
+  stars: number;
+  setStars: (stars: number) => void;
+  gradientIndex: number;
+  setGradientIndex: (index: number) => void;
 };
 
 export type locationContextType = {

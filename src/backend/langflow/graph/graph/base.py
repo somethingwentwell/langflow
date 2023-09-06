@@ -10,7 +10,7 @@ from langflow.graph.vertex.types import (
 )
 from langflow.interface.tools.constants import FILE_TOOLS
 from langflow.utils import payload
-from langflow.utils.logger import logger
+from loguru import logger
 from langchain.chains.base import Chain
 
 
@@ -144,7 +144,7 @@ class Graph:
 
         return list(reversed(sorted_vertices))
 
-    def generator_build(self) -> Generator:
+    def generator_build(self) -> Generator[Vertex, None, None]:
         """Builds each vertex in the graph and yields it."""
         sorted_vertices = self.topological_sort()
         logger.debug("Sorted vertices: %s", sorted_vertices)

@@ -7,14 +7,14 @@ from langflow.services.cache.manager import Subject
 from langflow.services.chat.utils import process_graph
 from langflow.interface.utils import pil_to_base64
 from langflow.services.schema import ServiceType
-from langflow.utils.logger import logger
+from loguru import logger
 
 
 import asyncio
-import json
 from typing import Any, Dict, List
 
 from langflow.services.cache.flow import InMemoryCache
+import orjson
 
 
 class ChatHistory(Subject):
@@ -92,7 +92,6 @@ class ChatManager(Service):
             )
 
     async def connect(self, client_id: str, websocket: WebSocket):
-        await websocket.accept()
         self.active_connections[client_id] = websocket
 
     def disconnect(self, client_id: str):
@@ -190,8 +189,8 @@ class ChatManager(Service):
             while True:
                 json_payload = await websocket.receive_json()
                 try:
-                    payload = json.loads(json_payload)
-                except TypeError:
+                    payload = orjson.loads(json_payload)
+                except Exception:
                     payload = json_payload
                 if "clear_history" in payload:
                     self.chat_history.history[client_id] = []

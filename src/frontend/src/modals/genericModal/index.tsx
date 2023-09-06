@@ -16,6 +16,7 @@ import { TypeModal } from "../../constants/enums";
 import { alertContext } from "../../contexts/alertContext";
 import { postValidatePrompt } from "../../controllers/API";
 import { genericModalPropsType } from "../../types/components";
+import { handleKeyDown } from "../../utils/reactflowUtils";
 import {
   classNames,
   getRandomKeyByssmm,
@@ -120,6 +121,7 @@ export default function GenericModal({
   }
 
   function validatePrompt(closeModal: boolean): void {
+    //nodeClass is always null on tweaks
     postValidatePrompt(field_name, inputValue, nodeClass!)
       .then((apiReturn) => {
         if (apiReturn.data) {
@@ -134,7 +136,11 @@ export default function GenericModal({
             setSuccessData({
               title: "Prompt is ready",
             });
-            setNodeClass!(apiReturn.data?.frontend_node);
+            if (
+              JSON.stringify(apiReturn.data?.frontend_node) !==
+              JSON.stringify({})
+            )
+              setNodeClass!(apiReturn.data?.frontend_node);
             setModalOpen(closeModal);
             setValue(inputValue);
           }
@@ -146,7 +152,6 @@ export default function GenericModal({
         }
       })
       .catch((error) => {
-        console.log(error);
         setIsEdit(true);
         return setErrorData({
           title: "There is something wrong with this prompt, please review it",
@@ -203,6 +208,9 @@ export default function GenericModal({
                   checkVariables(event.target.value);
                 }}
                 placeholder="Type message here."
+                onKeyDown={(e) => {
+                  handleKeyDown(e, inputValue, "");
+                }}
               />
             ) : type === TypeModal.PROMPT && !isEdit ? (
               <TextAreaContentView />
@@ -216,6 +224,9 @@ export default function GenericModal({
                   setInputValue(event.target.value);
                 }}
                 placeholder="Type message here."
+                onKeyDown={(e) => {
+                  handleKeyDown(e, value, "");
+                }}
               />
             ) : (
               <></>

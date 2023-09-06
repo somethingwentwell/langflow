@@ -8,6 +8,8 @@ import _ from "lodash";
 const initialValue: alertContextType = {
   errorData: { title: "", list: [] },
   setErrorData: () => {},
+  loading: true,
+  setLoading: () => {},
   errorOpen: false,
   setErrorOpen: () => {},
   noticeData: { title: "", link: "" },
@@ -34,6 +36,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     list?: Array<string>;
   }>({ title: "", list: [] });
   const [errorOpen, setErrorOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [noticeData, setNoticeDataState] = useState<{
     title: string;
     link?: string;
@@ -45,6 +48,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
   const [successOpen, setSuccessOpen] = useState(false);
   const [notificationCenter, setNotificationCenter] = useState(false);
   const [notificationList, setNotificationList] = useState<AlertItemType[]>([]);
+  const [isTweakPage, setIsTweakPage] = useState<boolean>(false);
   const pushNotificationList = (notification: AlertItemType) => {
     setNotificationList((old) => {
       let newNotificationList = _.cloneDeep(old);
@@ -120,6 +124,8 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         removeFromNotificationList,
         clearNotificationList,
         notificationList,
+        loading,
+        setLoading,
         pushNotificationList,
         setNotificationCenter,
         notificationCenter,

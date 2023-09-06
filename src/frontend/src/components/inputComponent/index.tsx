@@ -1,6 +1,7 @@
 import * as Form from "@radix-ui/react-form";
 import { useEffect, useState } from "react";
 import { InputComponentType } from "../../types/components";
+import { handleKeyDown } from "../../utils/reactflowUtils";
 import { classNames } from "../../utils/utils";
 import { Input } from "../ui/input";
 
@@ -29,6 +30,7 @@ export default function InputComponent({
       {isForm ? (
         <Form.Control asChild>
           <Input
+            type={password && !pwdVisible ? "password" : "text"}
             value={value}
             disabled={disabled}
             required={required}
@@ -45,10 +47,14 @@ export default function InputComponent({
             onChange={(e) => {
               onChange(e.target.value);
             }}
+            onKeyDown={(e) => {
+              handleKeyDown(e, value, "");
+            }}
           />
         </Form.Control>
       ) : (
         <Input
+          type="text"
           value={value}
           disabled={disabled}
           required={required}
@@ -65,16 +71,22 @@ export default function InputComponent({
           onChange={(e) => {
             onChange(e.target.value);
           }}
+          onKeyDown={(e) => {
+            handleKeyDown(e, value, "");
+          }}
         />
       )}
       {password && (
         <button
+          type="button"
+          tabIndex={-1}
           className={classNames(
             editNode
               ? "input-component-true-button"
               : "input-component-false-button"
           )}
-          onClick={() => {
+          onClick={(event) => {
+            event.preventDefault();
             setPwdVisible(!pwdVisible);
           }}
         >

@@ -2,12 +2,17 @@ import _ from "lodash";
 import {
   Connection,
   Edge,
+  Node,
   ReactFlowInstance,
   ReactFlowJsonObject,
 } from "reactflow";
+import { specialCharsRegex } from "../constants/constants";
 import { APITemplateType } from "../types/api";
 import { FlowType, NodeType } from "../types/flow";
-import { cleanEdgesType } from "../types/utils/reactflowUtils";
+import {
+  cleanEdgesType,
+  unselectAllNodesType,
+} from "../types/utils/reactflowUtils";
 import { toNormalCase } from "./utils";
 
 export function cleanEdges({
@@ -52,6 +57,14 @@ export function cleanEdges({
     }
   });
   updateEdge(newEdges);
+}
+
+export function unselectAllNodes({ updateNodes, data }: unselectAllNodesType) {
+  let newNodes = _.cloneDeep(data);
+  newNodes!.forEach((node: Node) => {
+    node.selected = false;
+  });
+  updateNodes(newNodes!);
 }
 
 export function isValidConnection(
@@ -239,6 +252,33 @@ export function addVersionToDuplicates(flow: FlowType, flows: FlowType[]) {
   }
 
   return newName;
+}
+
+export function handleKeyDown(
+  e: React.KeyboardEvent<HTMLInputElement>,
+  inputValue: string | string[] | null,
+  block: string
+) {
+  //condition to fix bug control+backspace on Windows/Linux
+  if (
+    (typeof inputValue === "string" &&
+      (e.metaKey === true || e.ctrlKey === true) &&
+      e.key === "Backspace" &&
+      (inputValue === block ||
+        inputValue?.charAt(inputValue?.length - 1) === " " ||
+        specialCharsRegex.test(inputValue?.charAt(inputValue?.length - 1)))) ||
+    (navigator.userAgent.toUpperCase().includes("MAC") &&
+      e.ctrlKey === true &&
+      e.key === "Backspace")
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  if (e.ctrlKey === true && e.key === "Backspace" && inputValue === block) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
 }
 
 export function getConnectedNodes(
