@@ -16,7 +16,7 @@ services:
       - -c 
       - | 
         pip install pgvector
-        uvicorn --factory src.backend.langflow.main:create_app --host 0.0.0.0 --port 7860 --reload
+        uvicorn --factory src.backend.langflow.main:create_app --host 0.0.0.0 --port 7860 --workers 5 --reload
 
   frontend:
     build:
