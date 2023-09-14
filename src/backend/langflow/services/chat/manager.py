@@ -161,7 +161,7 @@ class ChatManager(Service):
                     break
 
         response = ChatResponse(
-            message=result,
+            message=str(result),
             intermediate_steps=intermediate_steps.strip(),
             type="end",
             files=file_responses,
