@@ -66,7 +66,7 @@ export default function Header(): JSX.Element {
             <div className="flex-1">InSource</div>
           </Button>
         </Link>
-        <Link to="/community">
+        {/* <Link to="/community">
           <Button
             className="gap-2"
             variant={
@@ -77,11 +77,11 @@ export default function Header(): JSX.Element {
             <IconComponent name="Users2" className="h-4 w-4" />
             <div className="flex-1">Community Examples</div>
           </Button>
-        </Link>
+        </Link> */}
       </div>
       <div className="header-end-division">
         <div className="header-end-display">
-          <a
+          {/* <a
             href="https://github.com/logspace-ai/langflow"
             target="_blank"
             rel="noreferrer"
@@ -90,25 +90,25 @@ export default function Header(): JSX.Element {
             <FaGithub className="mr-2 h-5 w-5" />
             Star
             <div className="header-github-display">{stars}</div>
-          </a>
-          <a
+          </a> */}
+          {/* <a
             href="https://twitter.com/logspace_ai"
             target="_blank"
             rel="noreferrer"
             className="text-muted-foreground"
           >
             <FaTwitter className="side-bar-button-size" />
-          </a>
-          <a
+          </a> */}
+          {/* <a
             href="https://discord.gg/EqksyE2EX9"
             target="_blank"
             rel="noreferrer"
             className="text-muted-foreground"
           >
             <FaDiscord className="side-bar-button-size" />
-          </a>
+          </a> */}
 
-          <Separator orientation="vertical" />
+          {/* <Separator orientation="vertical" /> */}
           <button
             className="extra-side-bar-save-disable"
             onClick={() => {

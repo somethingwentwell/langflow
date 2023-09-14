@@ -1,14 +1,11 @@
 from langflow import CustomComponent
 
 from langchain.llms.base import BaseLLM
-from langchain.chains import LLMChain
-from langchain import PromptTemplate
 from langchain.schema import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores.pgvector import PGVector
 from langchain.chains import RetrievalQA
 from langchain.schema import BaseRetriever
-from langchain.chains.base import Chain
 import os
 
 class InSourcePostgresVectorEmbedding(CustomComponent):
@@ -19,7 +16,7 @@ class InSourcePostgresVectorEmbedding(CustomComponent):
         "code": {"show": False}
     }
 
-    def build(self, collection_name: str, llm: BaseLLM, embeddings: OpenAIEmbeddings ,docs: Document) -> Chain:
+    def build(self, collection_name: str, llm: BaseLLM, embeddings: OpenAIEmbeddings ,docs: Document) -> BaseRetriever:
         CONNECTION_STRING = PGVector.connection_string_from_db_params(
             driver="psycopg2",
             host=os.environ.get("POSTGRES_HOST", "localhost"),

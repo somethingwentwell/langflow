@@ -1,9 +1,7 @@
 from langflow import CustomComponent
 
 from langchain.llms.base import BaseLLM
-from langchain.chains import LLMChain
 from langchain import PromptTemplate
-from langchain.schema import Document
 from langchain.chains.base import Chain
 from langchain.chains.openai_functions import (
     create_openai_fn_chain,

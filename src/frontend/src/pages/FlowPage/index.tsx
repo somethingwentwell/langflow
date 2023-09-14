@@ -37,7 +37,7 @@ export default function FlowPage(): JSX.Element {
           className="logspace-page-icon"
         >
           {version && <div className="mt-1">⛓️ Langflow v{version}</div>}
-          <div className={version ? "mt-2" : "mt-1"}>Created by Logspace</div>
+          <div className={version ? "mt-2" : "mt-1"}>Managed by InSource</div>
         </a>
       </div>
     </>
