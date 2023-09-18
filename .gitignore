@@ -11,6 +11,7 @@ qdrant_storage
 
 # Mac
 .DS_Store
+/models
 
 # VSCode
 .vscode/settings.json
