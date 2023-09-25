@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import InputComponent from "../../components/inputComponent";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { CONTROL_LOGIN_STATE } from "../../constants/constants";
+import { CODE_PROMPT_DIALOG_SUBTITLE, CONTROL_LOGIN_STATE } from "../../constants/constants";
 import { alertContext } from "../../contexts/alertContext";
 import { AuthContext } from "../../contexts/authContext";
 import { getLoggedUser, onLogin } from "../../controllers/API";
@@ -13,6 +13,8 @@ import {
   inputHandlerEventType,
   loginInputStateType,
 } from "../../types/components";
+import { BASE_URL_API } from "../../constants/constants";
+import { useEffect } from "react"; // Add this import 
 
 export default function LoginPage(): JSX.Element {
   const [inputState, setInputState] =
@@ -23,6 +25,9 @@ export default function LoginPage(): JSX.Element {
     useContext(AuthContext);
   const navigate = useNavigate();
   const { setErrorData } = useContext(alertContext);
+
+  const redirectUri = window.location.href.toString();
+  const login_url = `${BASE_URL_API}oauth2?call_type=login`;
 
   function handleInput({
     target: { name, value },
@@ -49,6 +54,10 @@ export default function LoginPage(): JSX.Element {
       });
   }
 
+  function oauth2SignIn() {
+    window.location.href = login_url;
+  }
+
   function getUser() {
     if (getAuthentication()) {
       setTimeout(() => {
@@ -62,6 +71,27 @@ export default function LoginPage(): JSX.Element {
       }, 500);
     }
   }
+
+  useEffect(() => {  
+    async function fetchData() {
+      const urlParams = new URLSearchParams(window.location.search);  
+      const code = urlParams.get("code");  
+      const state = urlParams.get("state");
+    
+      if (code && state) {  
+        // let user = await handleOauth2Callback(code, state);  
+        let token_response = await fetch(`${BASE_URL_API}oauth2_callback?code=${code}&state=${state}`);
+        let token = await token_response.json();
+        let user_tokens_res = await fetch(`${BASE_URL_API}oauth2_get_user_token?access_token=${token.access_token}&id_token=${token.id_token}`);
+        let user = await user_tokens_res.json();
+        login(user.access_token, user.refresh_token);
+        getUser();
+        navigate("/");
+      }  
+    }
+    fetchData();
+
+  }, []);  
 
   return (
     <Form.Root
@@ -135,6 +165,11 @@ export default function LoginPage(): JSX.Element {
                 Sign in
               </Button>
             </Form.Submit>
+          </div>
+          <div className="w-full">
+            <Button className="w-full bg-info-content" onClick={oauth2SignIn}>
+              OAuth 2.0 Sign In
+            </Button>
           </div>
           <div className="w-full">
             <Link to="/signup">

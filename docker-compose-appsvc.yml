@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  backend:
+    image: warching/langflow_backend 
+    environment:
+      - OPENAI_API_TYPE=azure
+      - OPENAI_API_VERSION=2023-07-01-preview
+      - OPENAI_API_BASE=https://fevaworksopenai.openai.azure.com/
+      - OPENAI_API_KEY=91d78b11b5774a818aa2349b2132d981
+    ports:
+      - "7860:7860"
+    command: 
+      - bash 
+      - -c 
+      - | 
+        pip install pgvector llama-cpp-python
+        uvicorn --factory src.backend.langflow.main:create_app --host 0.0.0.0 --port 7860 --workers 5 --reload
+
+  frontend:
+    image: warching/langflow_frontend
+    environment:
+      - VITE_PROXY_TARGET=http://backend:7860
+    ports:
+      - "8000:3000"
+    restart: on-failure

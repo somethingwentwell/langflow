@@ -10,9 +10,27 @@ from langflow.services.auth.utils import (
     create_refresh_token,
     create_user_longterm_token,
     get_current_active_user,
+    get_user_by_username
 )
 
 from langflow.services.utils import get_settings_manager
+
+from fastapi import HTTPException  
+from fastapi.responses import RedirectResponse
+from starlette.requests import Request 
+from fastapi.responses import HTMLResponse 
+from jose import jwt  
+from urllib.parse import urlencode  
+import httpx  
+import os
+
+HOST = os.environ.get("LANGFLOW_HOST", "localhost")
+
+def get_cb_url(call_type):
+    if call_type == "login":
+        return f"http://{HOST}/login"
+    else:
+        return f"http://{HOST}/api/v1/oauth2_callback"
 
 router = APIRouter(tags=["Login"])
 
@@ -61,3 +79,90 @@ async def refresh_token(
             detail="Invalid refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+@router.get("/oauth2", response_class=HTMLResponse)  
+async def oauth2(request: Request):  
+    call_type = request.query_params.get("call_type")
+    # base_authorization_url = "https://login.microsoftonline.com/6b073a9c-bc00-4c50-8a11-811c4697765d/oauth2/v2.0/authorize"  
+    # params = {  
+    #     "client_id": "0ca3c3d3-e6e1-415c-8f08-5031ea2485c3",  
+    #     "response_type": "code",  
+    #     "redirect_uri": get_cb_url(call_type),  # Replace with your callback URL  
+    #     "scope": "openid profile email offline_access",  
+    #     "state": call_type,  # Replace with a secure random string  
+    # }  
+    base_authorization_url = os.environ.get("OAUTH2_AUTH_URL")
+    params = {  
+        "client_id": os.environ.get("OAUTH2_CLIENT_ID"),  
+        "response_type": "code",  
+        "redirect_uri": get_cb_url(call_type),  # Replace with your callback URL  
+        "scope": os.environ.get("OAUTH2_SCOPE"),  
+        "state": call_type,  # Replace with a secure random string  
+    }  
+    print(params)
+    authorization_url = f"{base_authorization_url}?{urlencode(params)}"  
+    return RedirectResponse(authorization_url)
+
+
+@router.get("/oauth2_callback")  
+async def callback(request: Request, db: Session = Depends(get_session)):  
+    code = request.query_params.get("code")  
+    state = request.query_params.get("state")  
+    if not code:  
+        raise HTTPException(status_code=400, detail="Missing authorization code")  
+  
+    # Exchange the authorization code for an access token  
+    # token_url = "https://login.microsoftonline.com/6b073a9c-bc00-4c50-8a11-811c4697765d/oauth2/v2.0/token"  
+    # token_data = {  
+    #     "grant_type": "authorization_code",  
+    #     "client_id": "0ca3c3d3-e6e1-415c-8f08-5031ea2485c3",  
+    #     "code": code,  
+    #     "redirect_uri": get_cb_url(state),
+    #     "scope": "openid profile email offline_access",  
+    #     "client_secret": "y-D8Q~i_alaW_kr6p38yl6ralAyc8OliRdkXta6I", 
+    # }  
+    token_url = os.environ.get("OAUTH2_TOKEN_URL")
+    token_data = {  
+        "grant_type": "authorization_code",  
+        "client_id": os.environ.get("OAUTH2_CLIENT_ID"),  
+        "code": code,  
+        "redirect_uri": get_cb_url(state),
+        "scope": os.environ.get("OAUTH2_SCOPE"),  
+        "client_secret": os.environ.get("OAUTH2_CLIENT_SECRET"), 
+    }  
+  
+    async with httpx.AsyncClient() as client:  
+        response = await client.post(token_url, data=token_data)  
+  
+    if response.status_code != 200:  
+        raise HTTPException(status_code=400, detail="Failed to get access token")  
+  
+    token_response = response.json()  
+    return token_response
+
+@router.get("/oauth2_get_user_token")
+async def callback(request: Request, db: Session = Depends(get_session)):
+    access_token = request.query_params.get("access_token")
+    id_token = request.query_params.get("id_token")
+
+    # Get the unverified claims from the ID token to get the user's email  
+    unverified_claims = jwt.get_unverified_claims(id_token)  
+    user_email = unverified_claims["email"]  
+    user_name = user_email.split('@')[0]
+
+    user = get_user_by_username(db, user_name)
+
+    if not user:
+        raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail= user_name + " is not authorized",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+    if not user.is_active:
+        if not user.last_login_at:
+            raise HTTPException(status_code=400, detail="Waiting for approval")
+        raise HTTPException(status_code=400, detail="Inactive user")
+  
+    return create_user_tokens(user_id=user.id, db=db, update_last_login=True) 
