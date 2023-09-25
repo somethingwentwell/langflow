@@ -1,5 +1,5 @@
 from sqlmodel import Session
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordRequestForm
 
 from langflow.services.utils import get_session
@@ -82,16 +82,8 @@ async def refresh_token(
 
 
 @router.get("/oauth2", response_class=HTMLResponse)  
-async def oauth2(request: Request):  
+async def oauth2(request: Request, call_type: str = Query(..., description="The type of call being made (login/api)")):  
     call_type = request.query_params.get("call_type")
-    # base_authorization_url = "https://login.microsoftonline.com/6b073a9c-bc00-4c50-8a11-811c4697765d/oauth2/v2.0/authorize"  
-    # params = {  
-    #     "client_id": "0ca3c3d3-e6e1-415c-8f08-5031ea2485c3",  
-    #     "response_type": "code",  
-    #     "redirect_uri": get_cb_url(call_type),  # Replace with your callback URL  
-    #     "scope": "openid profile email offline_access",  
-    #     "state": call_type,  # Replace with a secure random string  
-    # }  
     base_authorization_url = os.environ.get("OAUTH2_AUTH_URL")
     params = {  
         "client_id": os.environ.get("OAUTH2_CLIENT_ID"),  
@@ -106,22 +98,12 @@ async def oauth2(request: Request):
 
 
 @router.get("/oauth2_callback")  
-async def callback(request: Request, db: Session = Depends(get_session)):  
+async def callback(request: Request):  
     code = request.query_params.get("code")  
     state = request.query_params.get("state")  
     if not code:  
         raise HTTPException(status_code=400, detail="Missing authorization code")  
   
-    # Exchange the authorization code for an access token  
-    # token_url = "https://login.microsoftonline.com/6b073a9c-bc00-4c50-8a11-811c4697765d/oauth2/v2.0/token"  
-    # token_data = {  
-    #     "grant_type": "authorization_code",  
-    #     "client_id": "0ca3c3d3-e6e1-415c-8f08-5031ea2485c3",  
-    #     "code": code,  
-    #     "redirect_uri": get_cb_url(state),
-    #     "scope": "openid profile email offline_access",  
-    #     "client_secret": "y-D8Q~i_alaW_kr6p38yl6ralAyc8OliRdkXta6I", 
-    # }  
     token_url = os.environ.get("OAUTH2_TOKEN_URL")
     token_data = {  
         "grant_type": "authorization_code",  
@@ -142,7 +124,9 @@ async def callback(request: Request, db: Session = Depends(get_session)):
     return token_response
 
 @router.get("/oauth2_get_user_token")
-async def callback(request: Request, db: Session = Depends(get_session)):
+async def callback(request: Request, db: Session = Depends(get_session), 
+                   access_token: str = Query(..., description="The access token from the oauth2_callback"), 
+                   id_token: str = Query(..., description="The access token from the oauth2_callback")):
     access_token = request.query_params.get("access_token")
     id_token = request.query_params.get("id_token")
 
